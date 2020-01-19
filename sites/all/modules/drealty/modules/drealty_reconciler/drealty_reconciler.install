@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_schema_alter().
+ * @param $schema
+ */
+function drealty_reconciler_schema_alter(&$schema) {
+  $schema['drealty_listing']['fields']['last_reconciled'] = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'Date the listing was last reconciled against RETS.',
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function drealty_reconciler_install() {
+  db_add_field('drealty_listing', 'last_reconciled', array('type' => 'int', 'not null' => FALSE, 'default' => NULL, 'description' => 'Date the listing was last reconciled against RETS.'));
+  $types = array('drealty_office', 'drealty_agent'/*, 'drealty_openhouse'*/);
+  foreach ($types as $type) {
+    if (module_exists($type)) {
+      db_add_field($type, 'last_reconciled', array('type' => 'int', 'not null' => FALSE, 'default' => NULL, 'description' => 'Date the listing was last reconciled against RETS.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function drealty_reconciler_uninstall() {
+  db_drop_field('drealty_listing', 'last_reconciled');
+  $types = array('drealty_office', 'drealty_agent'/*, 'drealty_openhouse'*/);
+  foreach ($types as $type) {
+    if (module_exists($type)) {
+      db_drop_field($type, 'last_reconciled');
+    }
+  }
+}
+
+/**
+ * Add last_reconciled field to keep track of drealty entities status.
+ */
+function drealty_reconciler_update_7300(&$sandbox) {
+  $types = array('drealty_office', 'drealty_agent'/*, 'drealty_openhouse'*/);
+  foreach ($types as $type) {
+    if (module_exists($type)) {
+      db_add_field($type, 'last_reconciled', array('type' => 'int', 'not null' => FALSE, 'default' => NULL, 'description' => 'Date the listing was last reconciled against RETS.'));
+    }
+  }
+}

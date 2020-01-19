@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * @file
+ * Contains field values processing functionality.
+ */
+
+/**
+ * Menu callback.
+ */
+function drealty_fieldmap_menu() {
+  $items = array();
+
+  $items['admin/drealty/connections/fieldmap/%/resource/%/%'] = array(
+    'title' => 'Drealty Field Mapping',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drealty_fieldmap_primary_form', 4, 6, 7),
+    'access arguments' => array('access drealty admin'),
+    'file' => 'includes/drealty_fieldmap.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function drealty_fieldmap_theme() {
+  return array(
+    'drealty_fieldmap_rets_fields_options' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter.
+ *
+ * Dynamically populate the list of available options for LIST type fields,
+ * so that it contains the values stored in the DB.
+ */
+function drealty_fieldmap_form_drealty_listing_edit_form_alter(&$form, &$form_state, $form_id) {
+  $entity = $form_state['listing'];
+  $field_instances = field_info_instances('drealty_listing', $entity->type);
+  foreach ($field_instances as $instance) {
+    $field = field_info_field($instance['field_name']);
+    if (!empty($field) && in_array($field['type'], array(
+      'list_text',
+      'list_integer',
+    ))
+    ) {
+      $field_name = $instance['field_name'];
+      $form_field = $form[$field_name];
+
+      $old_options = isset($form_field['und']['#options']) ? $form_field['und']['#options'] : array();
+      if (count($old_options) > 1 || array_key_exists('_none', $old_options)) {
+        $options = array();
+
+        $res = db_query("SELECT DISTINCT {$field_name}_value FROM field_data_{$field_name} ORDER BY {$field_name}_value");
+        $db_name = $field_name . '_value';
+        $options = array('_none' => t('- None -'));
+        foreach ($res as $opt) {
+          if (!empty($opt->{$db_name})) {
+            $options[$opt->{$db_name}] = t($opt->{$db_name});
+          }
+        }
+
+        $form[$field_name]['und']['#options'] = $options;
+        if ($field['cardinality'] == -1 || $field['cardinality'] > 1) {
+          $form[$field_name]['und']['#multiple'] = TRUE;
+        }
+        if (!empty($entity->{$field_name})) {
+          foreach ($entity->{$field_name}['und'] as $i => $val) {
+            $form[$field_name]['und']['#default_value'][] = $val['value'];
+          }
+        }
+      }
+    }
+  }
+}

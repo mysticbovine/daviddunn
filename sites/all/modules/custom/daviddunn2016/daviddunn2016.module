@@ -1,0 +1,95 @@
+<?php
+/**
+ *  Implements hook_entity_presave()
+ */
+function daviddunn2016_entity_presave($entity, $type) {
+  $address = '';
+  if ($type == 'drealty_listing') {
+    if (!empty($entity->field_address_all[LANGUAGE_NONE][0])) {
+      $address_obj = $entity->field_address_all[LANGUAGE_NONE][0];
+      $address = _daviddunn2016_generate_address($address_obj);
+    }
+    else {
+      return;
+    }
+    if (!empty($address)) {
+      // Might as well set the title to an SEO-happy street address
+      $entity->field_property_title[LANGUAGE_NONE][0]['value'] = $address;
+    }
+    return $entity;
+  }
+}
+
+/**
+ * Implements hook_entity_view()
+ */
+function daviddunn2016_entity_view($entity, $type, $view_mode, $langcode) {
+  // Displays the address as a street address instead of MLS number
+  if ($type == 'drealty_listing') {
+    if (!empty($entity->field_property_title[LANGUAGE_NONE][0]['safe_value'])) {
+      drupal_set_title($entity->field_property_title[LANGUAGE_NONE][0]['safe_value']);
+    }
+  }
+}
+
+
+/**
+ * Helper function to generate a page
+ * title from an address object
+ */
+function _daviddunn2016_generate_address($address_obj = array()) {
+  $address = trim($address_obj['thoroughfare']) . ', ' .
+  trim($address_obj['locality'])  . ', ' .
+  trim($address_obj['administrative_area']) . ' ' .
+  trim($address_obj['postal_code']);
+  return $address_obj;
+}
+
+/**
+ * Finder Theme
+ *
+ */
+ function daviddunn2016_finder_element($element, &$form_element) {
+	
+	  if ($element->element == 'select') {
+    $form_element['#type'] = 'select';
+
+    $properties = array(
+      'ROBWASHERE',
+      'field_suffix',
+    );
+
+    if ($element->settings['form']['rows']) {
+      $form_element['#type'] = 'textarea';
+      $properties[] = 'rows';
+      $properties[] = 'cols';
+      $element->settings['form']['cols'] = $element->settings['form']['size'];
+    }
+    else {
+      $properties[] = 'maxlength';
+      $properties[] = 'size';
+    }
+
+    foreach ($properties as $property) {
+      if ($element->settings['form'][$property]) {
+        $form_element['#'. $property] = $element->settings['form'][$property];
+      }
+    }
+	$form_element['#prefix'] = '<div class="ROBWASHERE finder-form-element finder-form-element-' . $element->id . '">' . $form_element['#prefix'];
+  }
+ }
+ /**
+ * Implements hook_field_attach_view_alter().
+ *
+ * Hide label of display suite fields if field content is empty.
+ */
+function daviddunn2016_field_attach_view_alter(&$output, $context) {
+
+  foreach ($output as $field_name => $field) {
+    if (!empty($field['#label_display'])) {
+      if(isset($field[0]['#markup']) && empty($field[0]['#markup']) && ($field[0]['#markup'] !== 0)) {
+        $output[$field_name]['#label_display'] = 'hidden';
+      }
+    }
+  }
+ }

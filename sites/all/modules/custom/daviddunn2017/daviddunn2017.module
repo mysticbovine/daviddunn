@@ -1,0 +1,60 @@
+<?php
+ /**
+ * Implements hook_form_alter
+ *
+ * Adding custom settings to finder_form_property_search_2017
+ *
+ */
+ function daviddunn2017_form_alter(&$form, &$form_state, $form_id) {
+
+	switch ($form_id) {
+		
+		case 'finder_form_property_search_2017':	
+			$form['#attributes'] = array(
+				'class' => 'container property-search',
+			);
+			$form['finder_form']['address']['#prefix'] = '<div class="finder-form-element finder-form-element-address col-sm-6 col-md-6">';
+			$form['finder_form']['address']['#attributes']= array(
+				'placeholder' => t('Enter Address, City or MLS number'),
+			  );
+			$form['finder_form']['property_type']['#prefix'] = '<div class="finder-form-element finder-form-element-property_type col-sm-6 col-md-4">';
+			$form['finder_form']['actions']['find']['#prefix']= '<div class="col-sm-12 col-md-2">';
+			$form['finder_form']['actions']['find']['#suffix']= '</div>';
+			$form['finder_form']['actions']['find']['#attributes']['class'][] = 'btn btn-red form-submit';
+			
+		
+		break;
+		case 'webform-client-form-1':
+			$form['webform']['#attributes'] = array(
+				'class' => 'container',
+			);
+		break;
+		case 'views_exposed_form';
+			$form['submit']['#attributes']['class'][] = 'btn btn-red form-submit';
+			$form['search_api_views_fulltext']['#attributes']= array(
+				'placeholder' => t('Search by Address, City or Property Type IE: Single Family, Condo'),
+			);
+	
+			
+			
+		break;
+		
+	
+	}
+
+ }
+ 
+ function daviddunn2017_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
+ // drupal_set_message("Form ID is : " . $form_id);
+  
+  	//dsm($form_id);  // print form ID to messages
+	//dsm($form);  // pretty print array using Krumo to messages
+	##$form['#info']['filter-search_api_views_fulltext']['label']['#attributes']['class'] = 'hidden';
+	#$form['#info']['filter-search_api_views_fulltext']['class'] = "hidden";
+  
+}
+ 
+ function daviddunn2017_preprocess_html(&$variables) {
+  drupal_add_library('system', 'ui');
+  drupal_add_library('system', 'ui.accordion');
+}

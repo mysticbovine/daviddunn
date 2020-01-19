@@ -1,0 +1,26 @@
+name = David Dunn 2017
+description = Built to use Bootstrap 3, a sleek, intuitive, and powerful front-end framework for faster and easier web development.
+version = 1.0
+core = 7.x
+base theme = bootstrap
+
+regions[navigation]     = 'Navigation'
+regions[header]         = 'Top Bar'
+regions[highlighted]    = 'Highlighted'
+regions[help]           = 'Help'
+regions[hero]           = 'Hero'
+regions[content]        = 'Content'
+regions[first]        	= 'First block'
+regions[second]        	= 'Second block'
+regions[sidebar_first]  = 'Primary'
+regions[sidebar_second] = 'Secondary'
+regions[abovefooter]    = 'Above Footer'
+regions[footer]         = 'Footer'
+
+stylesheets[all][] = css/daviddunn2017.css
+
+scripts[] = js/scripts.js
+scripts[] = js/vunit-0.2.0.min.js
+
+settings[toggle_name] = 0
+settings[toggle_search] = 1

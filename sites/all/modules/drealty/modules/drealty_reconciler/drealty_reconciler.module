@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * Implements hook_entity_property_info_alter().
+ * @param $info
+ */
+function drealty_reconciler_entity_property_info_alter(&$info) {
+  $entities = array('drealty_listing', 'drealty_agent', 'drealty_office');
+  foreach ($entities as $entity) {
+    $properties = &$info[$entity]['properties'];
+
+    $properties['last_reconciled'] = array(
+      'label' => t("Last reconciled"),
+      'description' => t("Date the entity was last reconciled against RETS."),
+      'type' => 'integer',
+      'schema field' => 'last_reconciled',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Queues the system for listings that have not been reconciled for a while.
+ */
+function drealty_reconciler_cron() {
+  $options = variable_get('reconciler_check_options', '');
+
+  $queue = DrupalQueue::get('drealty_reconciler');
+  $queue->deleteQueue();
+
+  $timestamp = strtotime('-' . variable_get('drealty_reconciler_check', 7) . ' days');
+
+  $or = db_or()
+    ->condition('last_reconciled', $timestamp, '<=')
+    ->isNull('last_reconciled');
+
+  if (!empty($options) && !empty($list_entities = array_keys(array_filter($options)))) {
+    foreach ($list_entities as $list_entity) {
+      // Queues the system for ACTIVE listings that have not been reconciled.
+      $active = db_select($list_entity, 'l');
+      $active->fields('l', array(
+        'class',
+        'conid',
+        'id',
+        'rets_key',
+        'rets_id',
+        'type',
+        'active'
+      ));
+      $active->condition('active', 1);
+      $active->condition($or);
+      if ($list_entity == 'drealty_listing') {
+        $active->condition('rets_imported', 1);
+      }
+      if ($active_set = $active->execute()->fetchAllAssoc('id')) {
+        foreach ($active_set as $data) {
+          $item = array(
+            'class' => $data->class,
+            'conid' => $data->conid,
+            'entity_type' => $list_entity,
+            'id' => $data->id,
+            'rets_key' => $data->rets_key,
+            'rets_id' => $data->rets_id,
+            'type' => $data->type,
+            'active' => $data->active
+          );
+
+          $queue->createItem($item);
+        }
+      }
+    }
+  }
+
+  if (variable_get('drealty_reconciler_delete', 0) == 1) {
+    $options = variable_get('reconciler_delete_options', '');
+    if (!empty($options) && !empty($list_entities = array_filter($options))) {
+      foreach (array_keys($list_entities) as $entity) {
+        // If configuration is set to delete inactive listings, it will queue the system for already INACTIVE listings and add them to the queue.
+        $inactive = db_select($entity, 'l');
+        $inactive->fields('l', array(
+          'class',
+          'conid',
+          'id',
+          'rets_key',
+          'rets_id',
+          'type',
+          'active'
+        ));
+        $inactive->condition('active', 0);
+        if ($inactive_set = $inactive->execute()->fetchAllAssoc('id')) {
+          foreach ($inactive_set as $data) {
+            $item = array(
+              'class' => $data->class,
+              'conid' => $data->conid,
+              'entity_type' => $entity,
+              'id' => $data->id,
+              'rets_key' => $data->rets_key,
+              'rets_id' => $data->rets_id,
+              'type' => $data->type,
+              'active' => $data->active
+            );
+
+            $queue->createItem($item);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function drealty_reconciler_cron_queue_info() {
+  $queues = array();
+
+  $queues['drealty_reconciler'] = array(
+    'worker callback' => 'drealty_reconciler_process_item',
+    'time' => 120,
+  );
+
+  return $queues;
+}
+
+/**
+ * Callback from hook_cron_queue_info().
+ *
+ * @param $item
+ */
+function drealty_reconciler_process_item($item) {
+  $reconcile = new DrealtyReconciler();
+  $reconcile->processQueueItem($item);
+}

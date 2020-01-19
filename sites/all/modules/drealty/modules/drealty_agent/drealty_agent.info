@@ -1,0 +1,17 @@
+name = dRealty Agent(s)
+description = Provides the ability to import Real Estate Agents from a RETS Provider.
+core = 7.x
+package = Real Estate
+
+dependencies[] = drealty
+
+files[] = includes/drealty.agent.admin.inc
+files[] = includes/drealty.agent.inc
+
+
+; Information added by Drupal.org packaging script on 2016-12-27
+version = "7.x-3.0"
+core = "7.x"
+project = "drealty"
+datestamp = "1482836287"
+

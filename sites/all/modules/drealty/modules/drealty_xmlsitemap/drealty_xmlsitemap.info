@@ -1,0 +1,13 @@
+name = dRealty XMLSitemap
+description = Integrates dRealty listings with XMLSitemap.
+core = 7.x
+package = Real Estate
+
+dependencies[] = drealty
+dependencies[] = xmlsitemap
+; Information added by Drupal.org packaging script on 2016-12-27
+version = "7.x-3.0"
+core = "7.x"
+project = "drealty"
+datestamp = "1482836287"
+

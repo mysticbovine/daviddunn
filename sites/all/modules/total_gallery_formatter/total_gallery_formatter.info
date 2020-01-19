@@ -1,0 +1,14 @@
+name = Total Gallery Formatter
+description = A gallery formatter that gives you the Total control.
+package = Fields
+core = 7.x
+
+dependencies[] = libraries
+dependencies[] = jquery_update
+
+; Information added by Drupal.org packaging script on 2016-04-15
+version = "7.x-1.4"
+core = "7.x"
+project = "total_gallery_formatter"
+datestamp = "1460695743"
+

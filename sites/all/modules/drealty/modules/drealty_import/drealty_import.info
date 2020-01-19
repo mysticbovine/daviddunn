@@ -1,0 +1,15 @@
+name = dRealty Import
+description = Provides importing of drealty entities via cron.
+core = 7.x
+package = Real Estate
+
+dependencies[] = drealty
+dependencies[] = entity
+
+files[] = class/drealty_import.import.inc
+; Information added by Drupal.org packaging script on 2016-12-27
+version = "7.x-3.0"
+core = "7.x"
+project = "drealty"
+datestamp = "1482836287"
+

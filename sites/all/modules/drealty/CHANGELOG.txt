@@ -1,0 +1,78 @@
+7.x-3.1 - 12-27-2016
+
+---------------------------
+- Issue #2761645 Cannot import media : PHP Fatal error: Call to undefined method drealtyConnection::is_connected().
+- Issue #2759473 Mark all Media Objects for update? - Broken.
+- Issue #2779207 Add Documentation on Module's Configuration for 7.x-3.x branch changes.
+- Issue #2793145 Media Object mapped to TEXT type fields need to have ModificationTimestamp config selection.
+- Connections Reports feature: update items based on both Connection ID and Class ID.
+- Fixed .info files for all included modules.
+- Issue # by veronicaSeveryn: Adding more granularity to Import modification timestamp setting' --author="veronicaSeveryn <veronicaSeveryn@2477450.no-reply.drupal.org>".
+- Issue # by veronicaSeveryn: Centralizing functionality to check for Existing Drealty entity' --author="veronicaSeveryn <veronicaSeveryn@2477450.no-reply.drupal.org>".
+- Issue # by veronicaSeveryn: Fixing a few use cases during installation (checking for existing fields, tables, connections)' --author="veronicaSeveryn <veronicaSeveryn@2477450.no-reply.drupal.org>".
+- Issue #2825036 by veronicaSeveryn: Add Search API Indexing Filter for Inactive Listings / Agents / Offices' --author="veronicaSeveryn <veronicaSeveryn@2477450.no-reply.drupal.org>".
+- Issue #2825036 Add Search API Indexing Filter for Inactive Listings / Agents / Offices.
+- Improving code formatting inside Drush file.
+- Fix addressfields Premise subfield maaping of values.
+- Fix invalid argument supplied - PHP notice.
+- Issue #2798001 Fixed undefined Index when configuring listings.
+- Added ConnectionID and ClassID fields to entity definitions to be able to use them in Views, etc.
+- Added invocation of entity hooks (on delete/update) to reconciler functionality, so that triggers from other modules are executed when needed.
+- Replaced module_enable() with module_exists() check.
+- Issue #2722701 Fixed Drealty field instances creation to allow them to be re-used on node content type.
+- By veronicaSeveryn: Replaced custom ADMIN TABLE display of Drealty entities with Views integration for improved content search/filtering.
+- By veronicaSeveryn: Fixed Metadata record insertion into DB so that it does not cause PHP notices.
+- By veronicaSeveryn: Delete queue item after it has been processed during batch processing.
+- By veronicaSeveryn: Updated Cron task time interval (for processing of a single item).
+- Issue #2722525 Removing Drealty geocoder plugins.
+- By veronicaSeveryn: Add entity_change hook invocation when saving media on Drealty entities to ensure modules like Search API and others react accordingly.
+- Issue #2768717 Fixed undefined index PHP notices on Field mapping.
+- By veronicaSeveryn: Added Reconciler queue worker default time interval setting.
+- Issue #2838494 Added Drush option for RETS data import to perform incremental updates.
+- Issue #2452287 Fixed errors with claimItem() functionality during Batch processing.
+- Issue #2399795 Fixed Developer Tools - refresh result field values.
+- By veronicaSeveryn: An attempt to apply code standards to some of the files.
+- By veronicaSeveryn: Fix PHP notices.
+
+7.x-3.0-rc1 - 07-01-2016
+
+7.x-3.0-beta3 - 04-26-2012
+
++ Fix for issue #1514350 -  Increase the column length for rets_key and rets_id to prevent 'data too long' and 'data truncated' errors for some users.
++ Fixed issue when deleting mapped fields that were shared between multiple property types, it would also remove the RETS mapping from any property type that had previously mapped that field.
++ Issue #1498424 by TwoD. Broken RETS Query tester. Patch supplied by TwoD.
++ Issue #1519706 by TwoD. String cleanups. Coder Review initial pass.
++ Issue #1518174 by TwoD. Add Token support in custom RETS queries.
+    This patch adds support for using tokens in the custom query field(s).
+    It allows you to, for example, create "incremental" queries to only download listings that have been updated since the last time the listings class was successfully updated: (Status=A), (Last_updated_field=[drealty_class:last_updated]+).
+    Note: Incremental queries like in this example are probably incompatible with the new "delete/deactivate expired listings" feature recently committed. Since only recently changed items will be queued for processing and drealty diffs the queued listings to all previously fetched listings to know which ones are no longer available, it'll remove/deactivate every listing not recently changed...
++ Added a new view mode "gallery" to drealty_listing entity type.
++ Issue #1514350 - by jday. Data too long for column 'rets_id'. This was actually a problem in that the entity key 'label' was set to the field rets_id. This has been changed and there is now a label field and it defaults to the listing id value.
++ Added the title column into the overview form.
++ Issue #1526258 by j9 - ctools requirement. Removed a preprocess_entity hook that was loading some css via ctools_add_css, this wasn't needed and forced an undocumented requirement on ctools, so it was removed.
++ Changed the import method for servers that support offset to use phRETS auto offset feature.
++ Removing Geocoding Logic that is broken
++ Implemented Pathauto API for drealty_listing entities. No need to use pathauto_entity as drealty natively supports this now.
++ Issue #1533598 - Reformatting the drealty listing page title by j9, jday and bforchhammer. Changed the the function for the title callback on listings to return the result of ->label() instead of the rets_id.
++ Issue #1542136 Field mappings can't be removed by TwoD
++ Issue #1542140 Field mappings may only work with the latest connection. By TwoD.
++ Issue #1534508 by TwoD: Added Change the default numeric value to NULL.
++ Issue #1534506 by TwoD: Added Allow preprocessing RETS items.
++ Issue #1520156 by TwoD: Comment cleanups.
+
+
+7.x-3.0-beta2 - 04-03-2012
+
++ Issue [#1512700] by Kevin Quillen. Squash Pathauto Entity / Alias bug for good. Using new Entity() vs. entity_create() was causing Pathauot Entity to create duplicate alias entries.
++ Issue [#1512618] by Kevin Quillen. daemon import errors.  The default query function had a bad variable name, $item vs. $listing, which was not allowing listings to be imported correctly.
++ Added a $count variable to the import offset counter.
++ Improved the process_images() function. Added better error handling, logging, and some performance / memory management enhancements.
++ Issue [#1512576] by mgriebe. Test DMQL query not working. This is now working.
++ Issue [#1512780] by Kevin Quillen. Undefined offset error in drealty.daemon.php. This was caused by a logging function that was calculating a 'pretty' format for the number of bytes that were downloaded for image data. The function was removed.
++ Fixed issue where listings that did not have images in the MLS were not being properly marked as processed by the process_images() function.
++ Added new drush command: "rets-process-images" that will process any listings that are marked to process images, this is a utility function and probably won't be used by many.
+
+
+7.x-3.0-beta1
+
++ Initial Beta Release

@@ -1,0 +1,47 @@
+<div class="listing">
+<div class="image">
+[field_listing_image]
+</div>
+<div class="info">
+[field_l_city]
+[field_listing_price] 
+<div class="row">
+<div class="col-sm-6"><b>Type:</b></div>
+<div class="col-sm-6">[field_l_type_]</div>
+</div>
+<div class="row">
+<div class="col-sm-6"><b>Property Size:</b></div>
+<div class="col-sm-6">[field_lfd_propertysize_2]</div>
+</div>
+<div class="row">
+<div class="col-sm-6"><b>Land Size:</b></div>
+<div class="col-sm-6">[field_l_numacres]</div>
+</div>
+<div class="row">
+<div class="col-sm-6"><b>Bedrooms:</b></div>
+<div class="col-sm-6">[field_listing_bedrooms] </div>
+</div>
+<div class="row">
+<div class="col-sm-6"><b>Bathrooms:</b></div>
+<div class="col-sm-6">[field_listing_full_bathrooms]</div>
+</div>
+
+[nothing]
+</div>
+</div>
+
+OLD
+
+<div class="listing">
+<div class="image">
+[field_listing_image]
+</div>
+<div class="info">
+[field_l_city]
+[field_listing_price] 
+[field_remarks11]<br />
+[field_listing_bedrooms] 
+[field_listing_full_bathrooms]
+<div class="bottom">[nothing]</div>
+</div>
+</div>

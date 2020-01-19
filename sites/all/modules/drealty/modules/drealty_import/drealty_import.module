@@ -1,0 +1,201 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ * @return array
+ */
+function drealty_import_permission() {
+  return array(
+    'access drealty import' => array(
+      'title' => t('Access Drealty Import'),
+      'description' => t('Allows the user to execute drealty import.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function drealty_import_menu() {
+  $items = array();
+
+  $items['admin/drealty/drealty-import'] = array(
+    'title' => 'Drealty Import',
+    'description' => 'Perform first-time imports or system flushing.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access drealty import'),
+    'page callback' => 'drealty_import_admin_menu_block_page',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/drealty/drealty-import/config'] = array(
+    'title' => 'Configuration settings',
+    'description' => 'Adjust settings for importing.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access drealty import'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drealty_import_admin_settings_form'),
+    'file' => 'includes/admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 0
+  );
+
+  $items['admin/drealty/drealty-import/full-import'] = array(
+    'title' => 'Full Listings Import',
+    'description' => 'Queue all available Listing items based on drealty configuration to be imported.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access drealty import'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drealty_import_full_import_form'),
+    'file' => 'includes/full.batch.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 1
+  );
+
+  if (module_exists('drealty_agent')) {
+    $items['admin/drealty/drealty-import/agent-import'] = array(
+      'title' => 'Agent Import',
+      'description' => 'Queue all available Agents based on drealty configuration to be imported.',
+      'access callback' => 'user_access',
+      'access arguments' => array('access drealty import'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drealty_import_agent_import_form'),
+      'file' => 'includes/agent.batch.inc',
+      'type' => MENU_NORMAL_ITEM,
+      'weight' => 2
+    );
+  }
+
+  if (module_exists('drealty_office')) {
+    $items['admin/drealty/drealty-import/office-import'] = array(
+      'title' => 'Office Import',
+      'description' => 'Queue all available Office items based on drealty configuration to be imported.',
+      'access callback' => 'user_access',
+      'access arguments' => array('access drealty import'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drealty_import_office_import_form'),
+      'file' => 'includes/office.batch.inc',
+      'type' => MENU_NORMAL_ITEM,
+      'weight' => 3
+    );
+  }
+
+
+  if (module_exists('drealty_openhouse')) {
+    $items['admin/drealty/drealty-import/openhouse-import'] = array(
+      'title' => 'OpenHouse Import',
+      'description' => 'Queue all available OpenHouse data based on drealty configuration to be imported.',
+      'access callback' => 'user_access',
+      'access arguments' => array('access drealty import'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drealty_import_openhouse_import_form'),
+      'file' => 'includes/openhouse.batch.inc',
+      'type' => MENU_NORMAL_ITEM,
+      'weight' => 4
+    );
+  }
+
+  $items['admin/drealty/drealty-import/flush'] = array(
+    'title' => 'Flush Data',
+    'description' => 'Flush drealty listing data.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access drealty import'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drealty_import_flush_form'),
+    'file' => 'includes/flush.batch.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 5
+  );
+
+  $items['admin/drealty/drealty-import/process'] = array(
+    'title' => 'Process queue',
+    'description' => 'Manually process any drealty items in the queue via Batch.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access drealty import'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drealty_import_process_queue_form'),
+    'file' => 'includes/process.batch.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 6
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback from hook_menu.
+ * @return null|string
+ * @throws Exception
+ */
+function drealty_import_admin_menu_block_page() {
+  $item = menu_get_item();
+  if ($content = system_admin_menu_block($item)) {
+    $output = theme('admin_block_content', array('content' => $content));
+  } else {
+    $output = t('You do not have any administrative items.');
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_cron().
+ * Loops through all active connections, resources, and enabled classes, queries for changes in the feed from a limited timeframe.
+ */
+function drealty_import_cron() {
+  // look for updated listings per connection
+  $dc = new drealtyConnection();
+  $metadata = new drealtyMetaData();
+  $connections = $dc->FetchConfiguredConnections();
+  $items = array();
+  $increment = FALSE;
+  $import = new DrealtyImport();
+  $dm = new drealtyDaemon();
+
+  foreach ($connections as $connection) {
+    if ($connection->active == 1 && $dc->connect($connection->conid)) {
+      $mappings = $connection->ResourceMappings();
+
+      foreach ($mappings as $mapping) {
+        $resource = $metadata->FetchResource($mapping->rid);
+        $classes = $connection->FetchClasses($resource);
+        foreach ($classes as $key => $class) {
+          if ($class->enabled && $class->lifetime <= time() - ($class->lastupdate + 60)) {
+            if (variable_get('drealty_import_modified_span', 0) != 0 && !empty($class->rets_timestamp_field)) {
+              $increment = TRUE;
+            }
+            if (!empty($items = $dm->ProcessRetsClass($connection, $resource, $class, $mapping->entity_type, 'resources', TRUE, $increment))) {
+              foreach ($items as $item) {
+                $import->cron_queue->createItem($item);
+              }
+            }
+            $class->lastupdate = time();
+            drupal_write_record('drealty_classes', $class, 'cid');
+          }
+        }
+      }
+    }
+    $dc->disconnect();
+  }
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function drealty_import_cron_queue_info() {
+  $queues = array();
+
+  $queues['drealty_import'] = array(
+    'worker callback' => 'drealty_import_process_item',
+    'time' => 120,
+  );
+
+  return $queues;
+}
+
+/**
+ * Cron Queue item processor.
+ */
+function drealty_import_process_item($item) {
+  $import = new DrealtyImport();
+  $import->processQueueItem($item);
+}
